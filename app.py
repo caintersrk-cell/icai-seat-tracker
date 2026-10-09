@@ -16,6 +16,9 @@ import threading
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any
 
+from flask import Flask, render_template, jsonify, request
+from icai_poc_scraper import ICAIScraperPOC
+
 # Indian Standard Time (UTC + 5:30)
 IST = timezone(timedelta(hours=5, minutes=30))
 
@@ -117,7 +120,7 @@ def run_tamilnadu_scan(target_city_name=None, target_course_name=None):
                 if ok_fetch and batches:
                     fresh_batches.extend(batches)
 
-        timestamp = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST")
+        timestamp = datetime.now(IST).strftime("%Y-%m-%d %I:%M:%S %p IST")
 
         with data_lock:
             if len(pous_to_scan) < len(TN_POUS):
