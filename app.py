@@ -13,8 +13,11 @@ import csv
 import json
 import time
 import threading
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any
+
+# Indian Standard Time (UTC + 5:30)
+IST = timezone(timedelta(hours=5, minutes=30))
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates") if os.path.exists(os.path.join(BASE_DIR, "templates")) else BASE_DIR
@@ -114,7 +117,7 @@ def run_tamilnadu_scan(target_city_name=None, target_course_name=None):
                 if ok_fetch and batches:
                     fresh_batches.extend(batches)
 
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST")
 
         with data_lock:
             if len(pous_to_scan) < len(TN_POUS):
