@@ -16,10 +16,10 @@ import threading
 from datetime import datetime
 from typing import List, Dict, Any
 
-from flask import Flask, render_template, jsonify, request
-from icai_poc_scraper import ICAIScraperPOC
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates") if os.path.exists(os.path.join(BASE_DIR, "templates")) else BASE_DIR
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=TEMPLATE_DIR)
 
 # Strictly Tamil Nadu POUs
 TN_POUS = {
@@ -45,7 +45,7 @@ TARGET_COURSES = [
     {"id": "49", "name": "Advanced (ICITSS) MCS Course - Weekend"}
 ]
 
-DATA_FILE = "icai_tamilnadu_batches.csv"
+DATA_FILE = os.path.join(BASE_DIR, "icai_tamilnadu_batches.csv")
 
 # Global state
 data_lock = threading.Lock()
@@ -162,7 +162,28 @@ def add_header(response):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    candidates = [
+        os.path.join(BASE_DIR, "templates", "index.html"),
+        os.path.join(BASE_DIR, "index.html"),
+        "templates/index.html",
+        "index.html",
+    ]
+    for path in candidates:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read(), 200, {"Content-Type": "text/html; charset=utf-8"}
+    
+    # Debug directory if missing
+    files_list = []
+    for r, d, fs in os.walk(BASE_DIR):
+        for f in fs:
+            files_list.append(os.path.relpath(os.path.join(r, f), BASE_DIR))
+    return f"<h3>index.html not found</h3><p>Server files: {files_list}</p>", 404
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+    return f"<h1>Server Error</h1><pre style='background:#f1f5f9;padding:15px;border-radius:8px;'>{traceback.format_exc()}</pre>", 500
 
 @app.route("/api/batches")
 def get_batches():
